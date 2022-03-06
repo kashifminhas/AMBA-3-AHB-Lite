@@ -53,3 +53,9 @@ System Verilog Test-bench for verification of AMBA 3 AHB-Lite
 2. Cadence Xcelium 20.09
 3. Mentor Questa 2021.3
 4. Synopsys VCS 2020.03
+# Supported Tests:
+1. Single Burst
+2. Increment Burst of Undefined Length
+3. INCR & WRAP Tests (4,8,16 Beats)
+# How to run tests:
+1. Just press the run button this will executes all test included in the test bench.
