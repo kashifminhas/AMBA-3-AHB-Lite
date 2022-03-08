@@ -33,16 +33,8 @@ class driver;
         `DRIV_IF.hwdata <= trans.hwdata;
           drv2scb.put(trans);
        $display("%d:\t-----------------------------------------",no_of_trans);
-    $display($time," DRV:: Transaction : %p",trans);
     no_of_trans++;
 
   endtask : drive
-  
-      task main();
-        forever begin
-            drive();
-    end
-      endtask
-  
   
 endclass

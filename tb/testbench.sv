@@ -1,4 +1,4 @@
-//Top most file which connets DUT, interface and the test
+
 `include "amba_ahb_defines.v"
 `include "interface.sv"
 `include "transaction.sv"
@@ -25,14 +25,14 @@ initial begin
 	reset = 0;
 	#10;
 	reset = 1;
-    #10000;
+    #3000;
     $stop; 
 end
-  //interface instance, inorder to connect DUT and testcase
+
   dut_if vif(clk,reset);
-  //testcase instance, interface handle is passed to test as an argument
+  
   test t1(vif);
-  //DUT instance, interface signals are connected to the DUT ports
+  
   amba_ahb_slave DUT (
               .hclk(vif.clk),
               .hresetn(vif.reset),

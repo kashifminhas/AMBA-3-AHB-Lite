@@ -27,7 +27,7 @@ class environment;
     S1 = new(drv2scb,mon2scb);
     endfunction
   
-   task random_wr;
+   task random;
         fork    
             G1.main();
             D1.drive();
@@ -35,17 +35,7 @@ class environment;
             S1.data_write();
         join
     endtask
-  
-     task random_rd;
-        fork    
-            G1.main();
-            D1.drive();
-            M1.main();
-            S1.data_read();
-        join
-    endtask
-  
-  
+
   task write_sim_gen;
         fork    
             G1.write_w_gen();
@@ -58,6 +48,42 @@ class environment;
      task read_sim_gen;
         fork    
             G1.read_w_gen();
+            D1.drive();
+            M1.main();
+            S1.data_read();
+        join
+    endtask
+  
+    task write_sim_hw_gen;
+        fork    
+            G1.write_hw_gen();
+            D1.drive();
+            M1.main();
+            S1.data_write();
+        join
+    endtask
+  
+     task read_sim_hw_gen;
+        fork    
+            G1.read_hw_gen();
+            D1.drive();
+            M1.main();
+            S1.data_read();
+        join
+    endtask
+  
+      task write_sim_by_gen;
+        fork    
+            G1.write_by_gen();
+            D1.drive();
+            M1.main();
+            S1.data_write();
+        join
+    endtask
+  
+     task read_sim_by_gen;
+        fork    
+            G1.read_by_gen();
             D1.drive();
             M1.main();
             S1.data_read();

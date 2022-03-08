@@ -1,39 +1,40 @@
 
 class generator;
   transaction  trans;
-  int          a_array[*]; 
-  int          i =0;
-  int          w=1;
-  int          no_transactions=0;
-  int          gen_counter=0;
+  int            a_array[*];
+  int            d_array[*];
+  int            i=0;
+  int            w=1;
+  int            no_transactions=0;
+  int            gen_counter;
   logic   [31:0] TEMP_ADDR;
   logic   [31:0] start_addr;
   logic   [31:0] next_addr;
-  int          bound_check;
+  int            bound_check;
   
-  mailbox gtd;
+  mailbox gen2driv;
 
-  function new(mailbox gtd);
-    this.gtd = gtd;
+  function new(mailbox gen2driv);
+    this.gen2driv = gen2driv;
   endfunction
 
   task main();
     int ok;
-      repeat(gen_counter) begin
+      begin
        trans = new();
         ok = trans.randomize();
         if(ok)
           begin
-            gtd.put(trans);
+            gen2driv.put(trans);
           end
         else
           begin
             $display("Randomization Failed");
           end
-     end
-      $display("Transactions Generation Done");
       no_transactions++;
+     end
   endtask: main
+ 
 
     task write_w_gen();
         $display($time," %d ,, task write generator", i);
@@ -43,12 +44,12 @@ class generator;
     		a_array[i] = trans.haddr;
             trans.hwrite = 1;
             trans.hsize  = 3'b010;           
-            trans.hburst = 3'b000;//Single burst
+            trans.hburst = 3'b000;//Single
             trans.htrans = 2'b11;//SEQ
             if (i ==0 )
             trans.htrans = 2'b10;
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
     if (i == 4) i=0;
     endtask
@@ -59,19 +60,88 @@ class generator;
      		trans.haddr = a_array[i];
             trans.hwrite = 0;
             trans.hsize  = 3'b010;
-            trans.hburst = 3'b000;//Single burst
+            trans.hburst = 3'b000;//Single
             trans.htrans = 2'b11;//SEQ
             if (i ==0 )
             trans.htrans = 2'b10;
             trans.hprot  = 4'b0001;
-            gtd.put(trans);               
+            gen2driv.put(trans);               
+            i++;
+     if (i == 4) i=0;
+    endtask
+  
+      task write_hw_gen();
+        $display($time," %d ,, task write generator", i);
+        trans = new();  
+    if(!trans.randomize()) 
+      $fatal("Gen:: trans randomization failed"); 
+    		a_array[i] = trans.haddr;
+            trans.hwrite = 1;
+            trans.hsize  = 3'b001;//HW           
+            trans.hburst = 3'b000;//Single
+            trans.htrans = 2'b11;//SEQ
+            if (i ==0 )
+            trans.htrans = 2'b10;
+            trans.hprot  = 4'b0001;
+            gen2driv.put(trans);                 
+            i++;
+    if (i == 4) i=0;
+    endtask
+  
+   task read_hw_gen ();
+            $display($time, "   task read in generator");
+            trans = new();                       
+     		trans.haddr = a_array[i];
+            trans.hwrite = 0;
+            trans.hsize  = 3'b001;//HW
+            trans.hburst = 3'b000;//Single
+            trans.htrans = 2'b11;//SEQ
+            if (i ==0 )
+            trans.htrans = 2'b10;
+            trans.hprot  = 4'b0001;
+            gen2driv.put(trans);               
+            i++;
+     if (i == 4) i=0;
+    endtask
+  
+        task write_by_gen();
+        $display($time," %d ,, task write generator", i);
+        trans = new();  
+    if(!trans.randomize()) 
+      $fatal("Gen:: trans randomization failed"); 
+    		a_array[i] = trans.haddr;
+            trans.hwrite = 1;
+            trans.hsize  = 3'b000;//BYTE          
+            trans.hburst = 3'b000;//Single
+            trans.htrans = 2'b11;//SEQ
+            if (i ==0 )
+            trans.htrans = 2'b10;
+            trans.hprot  = 4'b0001;
+            gen2driv.put(trans);                 
+            i++;
+    if (i == 4) i=0;
+    endtask
+  
+   task read_by_gen ();
+            $display($time, "   task read in generator");
+            trans = new();                       
+     		trans.haddr = a_array[i];
+            trans.hwrite = 0;
+            trans.hsize  = 3'b000;//BYTE
+            trans.hburst = 3'b000;//Single
+            trans.htrans = 2'b11;//SEQ
+            if (i ==0 )
+            trans.htrans = 2'b10;
+            trans.hprot  = 4'b0001;
+            gen2driv.put(trans);               
             i++;
      if (i == 4) i=0;
     endtask
 
+
   task write_INCR4_gen();
         $display($time," %d ,, task write generator", i);
-        trans = new();  
+        trans = new();
           if(i==0)
            begin
             trans.randomize();
@@ -82,7 +152,7 @@ class generator;
             trans.hsize  = 3'b010;           
             trans.hburst = 3'b011;//4-beat incrementing burst
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                
+            gen2driv.put(trans);                
             i++;
             end            
     		else begin
@@ -95,7 +165,7 @@ class generator;
             trans.hburst = 3'b011;//4-beat incrementing burst
             trans.htrans = 2'b11;//SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
             end
       if (i == 4) i=0;
@@ -112,7 +182,7 @@ class generator;
             if (i == 0 )
             trans.htrans = 2'b10;//Non-SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
         if (i == 4) i=0;
     endtask
@@ -130,7 +200,7 @@ class generator;
             trans.hsize  = 3'b010;           
             trans.hburst = 3'b101;//8-beat incrementing burst
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                
+            gen2driv.put(trans);                
             i++;
             end            
     		else begin
@@ -143,7 +213,7 @@ class generator;
             trans.hburst = 3'b101;//8-beat incrementing burst
             trans.htrans = 2'b11;//SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
             end
         if (i == 8) i=0;
@@ -160,7 +230,7 @@ class generator;
             if (i == 0 )
             trans.htrans = 2'b10;//Non-SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
         if (i == 8) i=0;
     endtask
@@ -178,7 +248,7 @@ class generator;
             trans.hsize  = 3'b010;           
             trans.hburst = 3'b111;//16-beat incrementing burst
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
             end            
     		else begin
@@ -191,7 +261,7 @@ class generator;
             trans.hburst = 3'b111;//16-beat incrementing burst
             trans.htrans = 2'b11;//SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                
+            gen2driv.put(trans);                
             i++;
             end
         if (i == 16) i=0;
@@ -208,12 +278,13 @@ class generator;
             if (i == 0 )
             trans.htrans = 2'b10;//Non-SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
         if (i == 16) i=0;
     endtask
 
         task write_UND_INCR_gen();
+          #10;
         $display($time," %d ,, task write generator", i);
         trans = new();  
           if(i==0)
@@ -226,7 +297,7 @@ class generator;
             trans.hsize  = 3'b010;           
             trans.hburst = 3'b001;//Incrementing burst of undefined length
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                
+            gen2driv.put(trans);                
             i++;
             end            
     		else begin
@@ -239,7 +310,7 @@ class generator;
             trans.hburst = 3'b001;//Incrementing burst of undefined length
             trans.htrans = 2'b11;//SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
             end
         if (i == gen_counter) i=0;
@@ -256,7 +327,7 @@ class generator;
             if (i == 0 )
             trans.htrans = 2'b10;//Non-SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                
+            gen2driv.put(trans);                
             i++;
         if (i == gen_counter) i=0;
     endtask
@@ -270,11 +341,12 @@ class generator;
             trans.htrans = 2'b10;//Non-SEq
             a_array[i]   = trans.haddr;
             start_addr    = a_array[i];
+             $display("start-address:%0h",trans.haddr);
             trans.hwrite = 1;
             trans.hsize  = 3'b010;           
             trans.hburst = 3'b010;//4-beat wrapping burst
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
             end            
     		else begin
@@ -282,15 +354,26 @@ class generator;
             next_addr=    start_addr + w * (2 ** trans.hsize);
             bound_check  = 4*2**trans.hsize;
             if(((next_addr%bound_check)==0) &&(next_addr!=start_addr))
-            next_addr=next_addr-bound_check;
-            a_array[i]   = next_addr;
-            trans.haddr  = a_array[i];
+              begin
+                 next_addr=next_addr-bound_check;
+                 start_addr   = next_addr;
+                 a_array[i]   = start_addr;
+                 trans.haddr  = a_array[i];
+                 w=0;
+                $display("next_address-modulous:%0h",trans.haddr);
+              end
+            else
+              begin
+                 a_array[i]   = next_addr;
+                 trans.haddr  = a_array[i];
+                $display("next_address-without-modulous:%0h",trans.haddr);
+              end
             trans.hwrite = 1;
             trans.hsize  = 3'b010;           
             trans.hburst = 3'b010;//4-beat wrapping burst
             trans.htrans = 2'b11;//SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
             w++;
             end
@@ -308,7 +391,7 @@ class generator;
             if (i == 0 )
             trans.htrans = 2'b10;//Non-SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                
+            gen2driv.put(trans);                
             i++;
         if (i == 4) i=0;
     endtask
@@ -326,7 +409,7 @@ class generator;
             trans.hsize  = 3'b010;           
             trans.hburst = 3'b010;//4-beat wrapping burst
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
             end            
     		else begin
@@ -334,15 +417,26 @@ class generator;
             next_addr=    start_addr + w * (2 ** trans.hsize);
             bound_check  = 8*2**trans.hsize;
             if(((next_addr%bound_check)==0) &&(next_addr!=start_addr))
-            next_addr=next_addr-bound_check;
-            a_array[i]   = next_addr;
-            trans.haddr  = a_array[i];
+              begin
+                 next_addr=next_addr-bound_check;
+                 start_addr   = next_addr;
+                 a_array[i]   = start_addr;
+                 trans.haddr  = a_array[i];
+                 w=0;
+                $display("next_address-modulous:%0h",trans.haddr);
+              end
+            else
+              begin
+                 a_array[i]   = next_addr;
+                 trans.haddr  = a_array[i];
+                $display("next_address-without-modulous:%0h",trans.haddr);
+              end
             trans.hwrite = 1;
             trans.hsize  = 3'b010;           
             trans.hburst = 3'b100;//8-beat wrapping burst 
             trans.htrans = 2'b11;//SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                
+            gen2driv.put(trans);                
             i++;
             w++;
             end
@@ -360,7 +454,7 @@ class generator;
             if (i == 0 )
             trans.htrans = 2'b10;//Non-SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
         if (i == 8) i=0;
     endtask
@@ -378,23 +472,34 @@ class generator;
             trans.hsize  = 3'b010;           
             trans.hburst = 3'b010;//4-beat wrapping burst
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                
+            gen2driv.put(trans);                
             i++;
             end            
     		else begin
             trans.randomize();
             next_addr=    start_addr + w * (2 ** trans.hsize);
             bound_check  = 16*2**trans.hsize;
-            if(((next_addr%bound_check)==0) &&(next_addr!=start_addr))
-            next_addr=next_addr-bound_check;
-            a_array[i]   = next_addr;
-            trans.haddr  = a_array[i];
+           if(((next_addr%bound_check)==0) &&(next_addr!=start_addr))
+              begin
+                 next_addr=next_addr-bound_check;
+                 start_addr   = next_addr;
+                 a_array[i]   = start_addr;
+                 trans.haddr  = a_array[i];
+                 w=0;
+                $display("next_address-modulous:%0h",trans.haddr);
+              end
+            else
+              begin
+                 a_array[i]   = next_addr;
+                 trans.haddr  = a_array[i];
+                $display("next_address-without-modulous:%0h",trans.haddr);
+              end
             trans.hwrite = 1;
             trans.hsize  = 3'b010;           
             trans.hburst = 3'b110;//16-beat wrapping burst
             trans.htrans = 2'b11;//SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                
+            gen2driv.put(trans);                
             i++;
             w++;
             end
@@ -412,7 +517,7 @@ class generator;
             if (i == 0 )
             trans.htrans = 2'b10;//Non-SEQ
             trans.hprot  = 4'b0001;
-            gtd.put(trans);                 
+            gen2driv.put(trans);                 
             i++;
         if (i == 16) i=0;
     endtask
